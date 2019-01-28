@@ -15,6 +15,7 @@ import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -64,7 +65,9 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     @ViewById
     protected TextView tvWalletFilePath_AM;
     @ViewById
-    protected TextView tvRecipientAddress_AM;
+    protected EditText etRecipientAddress_AM;
+    @ViewById
+    protected Button btnRecipientAddress_AM;
     @ViewById
     protected TextView etAmount_AM;
     @ViewById
@@ -164,8 +167,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
 
     @Override
     public void displayRecipientAddress(String recipientAddress) {
-        tvRecipientAddress_AM.setText(TextUtils.isEmpty(recipientAddress) ? strScanRecipientQRCode : recipientAddress);
-        tvRecipientAddress_AM.setTextColor(TextUtils.isEmpty(recipientAddress) ? colorGreyDark : colorGreenDark);
+        etRecipientAddress_AM.setText(TextUtils.isEmpty(recipientAddress) ? "" : recipientAddress);
+        etRecipientAddress_AM.setTextColor(TextUtils.isEmpty(recipientAddress) ? colorGreyDark : colorGreenDark);
     }
 
 
@@ -176,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
 
     @Override
     public String getRecipient() {
-        return tvRecipientAddress_AM.getText().toString().trim();
+        return etRecipientAddress_AM.getText().toString().trim();
     }
 
     @Override
@@ -218,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
 
     private void setListeners() {
         srlContent_AM.setOnRefreshListener(() -> presenter.refresh());
-        tvRecipientAddress_AM.setOnClickListener(v -> presenter.pickRecipient());
+        btnRecipientAddress_AM.setOnClickListener(v -> presenter.pickRecipient());
         btnSend_AM.setOnClickListener(v -> presenter.send());
         etAmount_AM.addTextChangedListener(new TextWatcher() {
             @Override

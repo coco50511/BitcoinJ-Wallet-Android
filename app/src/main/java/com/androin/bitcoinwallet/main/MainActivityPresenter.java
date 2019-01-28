@@ -118,12 +118,16 @@ public class MainActivityPresenter implements MainActivityContract.MainActivityP
             view.clearAmount();
             return;
         }
-        SendRequest request = SendRequest.to(Address.fromBase58(parameters, recipientAddress), Coin.parseCoin(amount));
         try {
+            SendRequest request = SendRequest.to(Address.fromBase58(parameters, recipientAddress), Coin.parseCoin(amount));
             walletAppKit.wallet().completeTx(request);
             walletAppKit.wallet().commitTx(request.tx);
             walletAppKit.peerGroup().broadcastTransaction(request.tx).broadcast();
+            Log.d("===TEMP", "send " + request.tx.getHashAsString());
         } catch (InsufficientMoneyException e) {
+            e.printStackTrace();
+            view.showToastMessage(e.getMessage());
+        } catch (Exception e) {
             e.printStackTrace();
             view.showToastMessage(e.getMessage());
         }
@@ -151,6 +155,7 @@ public class MainActivityPresenter implements MainActivityContract.MainActivityP
             view.clearAmount();
             view.displayRecipientAddress(null);
             view.showToastMessage("Sent " + prevBalance.minus(newBalance).minus(tx.getFee()).toFriendlyString());
+            Log.d("===TEMP", "addCoinsSentEventListener " +  tx.getHashAsString());
         });
     }
 }
