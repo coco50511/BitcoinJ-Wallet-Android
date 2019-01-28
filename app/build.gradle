@@ -1,0 +1,42 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion '27.0.3'
+    defaultConfig {
+        applicationId "com.androin.bitcoinwallet"
+        minSdkVersion 15
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    //Android support
+    implementation 'com.android.support:design:25.3.1'
+    //Android annotations
+    annotationProcessor "org.androidannotations:androidannotations:4.2.0"
+    implementation 'org.androidannotations:androidannotations-api:4.2.0'
+    //BitcoinJ SDK
+    implementation 'org.bitcoinj:bitcoinj-core:0.14.4'
+    //QR support
+    implementation 'com.github.kenglxn.QRGen:android:2.2.0'
+    implementation 'com.journeyapps:zxing-android-embedded:3.0.2@aar'
+    implementation 'com.google.zxing:core:3.2.0'
+    //Logging
+    implementation 'org.slf4j:slf4j-api:1.7.12'
+    implementation 'org.slf4j:slf4j-simple:1.7.12'
+}
