@@ -17,7 +17,7 @@ Application works with official bitcoin test network (TestNet3) and contains nex
 
 # Screenshots
 <img src="screenshots/loading.png" alt="Initializaqtion" width="288" height="512">&nbsp;
-<img src="screenshots/send.png" alt="Send" width="288" height="512">&nbsp;
+<img src="screenshots/send.jpg" alt="Send" width="288" height="512">&nbsp;
 
 # Service Information
 SDK tutorial https://bitcoinj.github.io/getting-started-java
