@@ -112,23 +112,6 @@
                     android:layout_marginTop="8dp"
                     android:background="@android:color/darker_gray" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="8dp"
-                    android:paddingEnd="24dp"
-                    android:paddingStart="24dp"
-                    android:paddingTop="8dp"
-                    android:text="Send"
-                    android:textColor="@android:color/black"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@android:color/darker_gray" />
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -136,30 +119,44 @@
                     android:paddingBottom="8dp"
                     android:paddingEnd="24dp"
                     android:paddingStart="24dp"
-                    android:paddingTop="8dp">
-
+                    android:paddingTop="8dp"
+                    android:gravity="left">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="To:"
-                        android:textSize="18sp" />
-
+                        android:paddingLeft="24dp"
+                        android:text="Send:"
+                        android:textColor="@android:color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
                     <EditText
-                        android:id="@+id/etRecipientAddress_AM"
-                        android:layout_width="match_parent"
+                        android:id="@+id/etRecipientCount"
+                        android:layout_width="80dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:gravity="center"
                         android:textSize="14sp"
+                        android:textColor="@android:color/holo_blue_dark"
+                        android:text="1"
+                        android:inputType="number"
                         android:visibility="visible" />
-
-                    <Button
-                        android:id="@+id/btnRecipientAddress_AM"
-                        style="@android:style/Widget.Material.Light.Button.Small"
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="QR" />
+                        android:text="(1-5)"
+                        android:textColor="@android:color/black"
+                        android:textSize="14sp"/>
+                </LinearLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@android:color/darker_gray" />
+
+                <LinearLayout
+                    android:id="@+id/recipient_container"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
                 </LinearLayout>
 
                 <View

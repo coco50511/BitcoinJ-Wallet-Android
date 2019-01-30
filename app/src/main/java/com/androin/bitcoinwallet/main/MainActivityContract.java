@@ -17,24 +17,28 @@ public interface MainActivityContract {
         void displayWalletPath(String walletPath);
 
         void displayMyAddress(String myAddress);
-        void displayRecipientAddress(String recipientAddress);
 
         void showToastMessage(String message);
-        String getRecipient();
         String getAmount();
         void clearAmount();
 
-        void startScanQR();
         void displayInfoDialog(String myAddress);
+
+        int getRecipientCount();
+        String getRecipientAddress(int index);
+        boolean setTransactionHash(int index, String hash);
+        String getTransactionHash(int index);
+        boolean setStateIdel(int index);
+        boolean setStateSending(int index);
+        boolean setStateSuccess(int index);
+        boolean setStateFail(int index);
+        boolean isStateSending(int index);
+        void onSendCompleted(String hash);
     }
     interface MainActivityPresenter extends BasePresenter {
         void refresh();
-        void pickRecipient();
         void send();
 
         void getInfoDialog();
-    }
-    interface MainActivityModel {
-
     }
 }

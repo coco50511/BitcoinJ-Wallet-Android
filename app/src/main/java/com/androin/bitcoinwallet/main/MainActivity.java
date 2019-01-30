@@ -1,7 +1,11 @@
 package com.androin.bitcoinwallet.main;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -39,6 +43,8 @@ import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.res.StringRes;
 
+import java.util.ArrayList;
+
 @EActivity(R.layout.activity_main)
 @OptionsMenu(R.menu.menu_main)
 public class MainActivity extends AppCompatActivity implements MainActivityContract.MainActivityView {
@@ -65,15 +71,16 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     @ViewById
     protected TextView tvWalletFilePath_AM;
     @ViewById
-    protected EditText etRecipientAddress_AM;
-    @ViewById
-    protected Button btnRecipientAddress_AM;
-    @ViewById
-    protected TextView etAmount_AM;
+    protected EditText etAmount_AM;
     @ViewById
     protected Button btnSend_AM;
     @ViewById
+    protected EditText etRecipientCount;
+    @ViewById
     protected ImageView ivCopy_AM;
+
+    protected ArrayList<RecipientFragment> m_recipientFragments;
+    private RecipientFragment m_curRecipientFragment;
 
     @SystemService
     protected ClipboardManager clipboardManager;
@@ -83,10 +90,10 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     @StringRes(R.string.about)
     protected String strAbout;
 
-    @ColorRes(android.R.color.holo_green_dark)
-    protected int colorGreenDark;
-    @ColorRes(android.R.color.darker_gray)
-    protected int colorGreyDark;
+    public int colorGreenDark;
+    public int colorGreyDark;
+    public int colorRedDark;
+    public int colorBlueDark;
 
     @AfterInject
     protected void initData() {
@@ -95,15 +102,16 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
 
     @AfterViews
     protected void initUI() {
+        colorGreenDark = getResources().getColor(android.R.color.holo_green_dark);
+        colorGreyDark = getResources().getColor(android.R.color.darker_gray);
+        colorRedDark = getResources().getColor(android.R.color.holo_red_dark);
+        colorBlueDark = getResources().getColor(android.R.color.holo_blue_dark);
+
+        initRecipientFragments();
         initToolbar();
         setListeners();
 
         presenter.subscribe();
-    }
-
-    @OptionsItem(R.id.menuScanQR_MM)
-    protected void clickMenuGetRecipientQR() {
-        presenter.pickRecipient();
     }
 
     @OptionsItem(R.id.menuInfo_MM)
@@ -166,20 +174,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     }
 
     @Override
-    public void displayRecipientAddress(String recipientAddress) {
-        etRecipientAddress_AM.setText(TextUtils.isEmpty(recipientAddress) ? "" : recipientAddress);
-        etRecipientAddress_AM.setTextColor(TextUtils.isEmpty(recipientAddress) ? colorGreyDark : colorGreenDark);
-    }
-
-
-    @Override
     public void showToastMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public String getRecipient() {
-        return etRecipientAddress_AM.getText().toString().trim();
     }
 
     @Override
@@ -192,8 +188,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
         etAmount_AM.setText(null);
     }
 
-    @Override
-    public void startScanQR() {
+    public void startScanQR(RecipientFragment fragment) {
+        m_curRecipientFragment = fragment;
         new IntentIntegrator(this).initiateScan();
     }
 
@@ -211,29 +207,70 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
     }
 
     @Override
+    public void onBackPressed() {
+        AlertDialog.Builder alertDlg = new AlertDialog.Builder(this);
+        alertDlg.setMessage("Are you sure you want to exit?");
+        alertDlg.setCancelable(false); // We avoid that the dialong can be cancelled, forcing the user to choose one of the options
+        alertDlg.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                MainActivity.super.onBackPressed();
+            }
+        });
+        alertDlg.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        alertDlg.create().show();
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (scanResult != null) {
-            displayRecipientAddress(scanResult.getContents());
+            m_curRecipientFragment.displayRecipientAddress(scanResult.getContents());
         }
     }
 
     private void setListeners() {
         srlContent_AM.setOnRefreshListener(() -> presenter.refresh());
-        btnRecipientAddress_AM.setOnClickListener(v -> presenter.pickRecipient());
         btnSend_AM.setOnClickListener(v -> presenter.send());
+        etRecipientCount.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                int count;
+                String strCount = s.toString().trim();
+                if(strCount.length() == 0) {
+                    return;
+                } else {
+                    try {
+                        count = Integer.parseInt(strCount);
+                    } catch(Exception e) {
+                        count = 1;
+                    }
+
+                    if (count < 1) {
+                        count = 1;
+                        etRecipientCount.setText(Integer.toString(count));
+                    } else if (5 < count) {
+                        count = 5;
+                        etRecipientCount.setText(Integer.toString(count));
+                    }
+                }
+
+                onChangedRecipientCount(count);
+            }
+        });
         etAmount_AM.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
                 if(s.toString().trim().length() == 0)
@@ -245,5 +282,122 @@ public class MainActivity extends AppCompatActivity implements MainActivityContr
             clipboardManager.setPrimaryClip(clip);
             Toast.makeText(MainActivity.this, "Copied", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    //----------------------------------------- Recipient -----------------------------------------------
+    private void initRecipientFragments() {
+        m_recipientFragments = new ArrayList<RecipientFragment>();
+        onChangedRecipientCount(1);
+    }
+
+    private void onChangedRecipientCount(int count) {
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        int cur_cnt = m_recipientFragments.size();
+        if (count < cur_cnt) {
+            for (int i = cur_cnt - 1; count <= i; i --) {
+                Fragment fragment = m_recipientFragments.get(i);
+                m_recipientFragments.remove(fragment);
+                fragmentTransaction.remove(fragment);
+            }
+        } if (cur_cnt < count) {
+            for (int i = cur_cnt; i < count; i ++) {
+                RecipientFragment fragment = new RecipientFragment();
+                fragment.setParent(this);
+                m_recipientFragments.add(fragment);
+                fragmentTransaction.add(R.id.recipient_container, fragment, "RECIPIENT");
+            }
+        }
+
+        fragmentTransaction.commit();
+    }
+
+    @Override
+    public int getRecipientCount() {
+        return m_recipientFragments.size();
+    }
+
+    @Override
+    public String getRecipientAddress(int index) {
+        RecipientFragment fragment =  m_recipientFragments.get(index);
+        if (fragment == null)
+            return "";
+        return fragment.getRecipient();
+    }
+
+    @Override
+    public boolean setTransactionHash(int index, String hash) {
+        RecipientFragment fragment =  m_recipientFragments.get(index);
+        if (fragment == null)
+            return false;
+        fragment.setTransactionHash(hash);
+        return true;
+    }
+
+    @Override
+    public String getTransactionHash(int index) {
+        RecipientFragment fragment =  m_recipientFragments.get(index);
+        if (fragment == null)
+            return "";
+        return fragment.getTransactionHash();
+    }
+
+    @Override
+    public boolean setStateIdel(int index) {
+        RecipientFragment fragment =  m_recipientFragments.get(index);
+        if (fragment == null)
+            return false;
+        fragment.setStateIdel();
+        return true;
+    }
+
+    @Override
+    public boolean setStateSending(int index) {
+        RecipientFragment fragment =  m_recipientFragments.get(index);
+        if (fragment == null)
+            return false;
+        fragment.setStateSending();
+        return true;
+    }
+
+    @Override
+    public boolean setStateSuccess(int index) {
+        RecipientFragment fragment =  m_recipientFragments.get(index);
+        if (fragment == null)
+            return false;
+        fragment.setStateSuccess();
+        return true;
+    }
+
+    @Override
+    public boolean setStateFail(int index) {
+        RecipientFragment fragment =  m_recipientFragments.get(index);
+        if (fragment == null)
+            return false;
+        fragment.setStateFail();
+        return true;
+    }
+
+    @Override
+    public boolean isStateSending(int index) {
+        RecipientFragment fragment = m_recipientFragments.get(index);
+        if (fragment == null)
+            return false;
+        return fragment.isStateSending();
+    }
+
+    @Override
+    public void onSendCompleted(String hash) {
+        for (int i = 0; i < m_recipientFragments.size(); i ++) {
+            RecipientFragment fragment = m_recipientFragments.get(i);
+            if (!fragment.isStateSending())
+                continue;
+
+            if (hash.equals(fragment.getTransactionHash())) {
+                fragment.setStateSuccess();
+                return;
+            }
+        }
     }
 }

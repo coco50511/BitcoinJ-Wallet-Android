@@ -96,42 +96,60 @@ public class MainActivityPresenter implements MainActivityContract.MainActivityP
     }
 
     @Override
-    public void pickRecipient() {
-        view.displayRecipientAddress(null);
-        view.startScanQR();
-    }
-
-    @Override
     public void send() {
-        String recipientAddress = view.getRecipient();
-        String amount = view.getAmount();
-        if(TextUtils.isEmpty(recipientAddress) || recipientAddress.equals("Scan recipient QR")) {
-            view.showToastMessage("Select recipient");
+        int count = view.getRecipientCount();
+
+        // Get total count of valid recipient address
+        int real_count = 0;
+        for (int i = 0; i < count; i ++) {
+            view.setStateIdel(i);
+            view.setTransactionHash(i,"");
+
+            String recipientAddress = view.getRecipientAddress(i);
+            if (!TextUtils.isEmpty(recipientAddress)) {
+                real_count ++;
+            }
+        }
+        if (real_count <= 0) {
+            view.showToastMessage("Input the least one recipient address");
             return;
         }
-        if(TextUtils.isEmpty(amount) | Double.parseDouble(amount) <= 0) {
+
+        // Check the balance of wallet
+        String strAmount = view.getAmount();
+        if (TextUtils.isEmpty(strAmount) | Float.parseFloat(strAmount) <= 0) {
             view.showToastMessage("Select valid amount");
             return;
         }
-        if(walletAppKit.wallet().getBalance().isLessThan(Coin.parseCoin(amount))) {
+        float total_amount = Float.parseFloat(strAmount) * real_count;
+        String strTotalAmount = String.format ("%f", total_amount);
+        if (walletAppKit.wallet().getBalance().isLessThan(Coin.parseCoin(strTotalAmount))) {
             view.showToastMessage("You got not enough coins");
             view.clearAmount();
             return;
         }
-        try {
-            SendRequest request = SendRequest.to(Address.fromBase58(parameters, recipientAddress), Coin.parseCoin(amount));
-            walletAppKit.wallet().completeTx(request);
-            walletAppKit.wallet().commitTx(request.tx);
-            walletAppKit.peerGroup().broadcastTransaction(request.tx).broadcast();
-            Log.d("===TEMP", "send " + request.tx.getHashAsString());
-        } catch (InsufficientMoneyException e) {
-            e.printStackTrace();
-            view.showToastMessage(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            view.showToastMessage(e.getMessage());
-        }
 
+        // Send
+        for (int i = 0; i < count; i ++) {
+            String recipientAddress = view.getRecipientAddress(i);
+            if (TextUtils.isEmpty(recipientAddress)) {
+                continue;
+            }
+
+            try {
+                SendRequest request = SendRequest.to(Address.fromBase58(parameters, recipientAddress), Coin.parseCoin(strAmount));
+                walletAppKit.wallet().completeTx(request);
+                walletAppKit.wallet().commitTx(request.tx);
+                walletAppKit.peerGroup().broadcastTransaction(request.tx).broadcast();
+
+                view.setTransactionHash(i, request.tx.getHashAsString());
+                view.setStateSending(i);
+            } catch (Exception e) {
+                e.printStackTrace();
+                view.setStateFail(i);
+                view.showToastMessage(e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -151,11 +169,9 @@ public class MainActivityPresenter implements MainActivityContract.MainActivityP
             view.showToastMessage("Receive " + newBalance.minus(prevBalance).toFriendlyString());
         });
         wallet.addCoinsSentEventListener((wallet12, tx, prevBalance, newBalance) -> {
+            view.onSendCompleted(tx.getHashAsString());
             view.displayMyBalance(wallet.getBalance().toFriendlyString());
-            view.clearAmount();
-            view.displayRecipientAddress(null);
             view.showToastMessage("Sent " + prevBalance.minus(newBalance).minus(tx.getFee()).toFriendlyString());
-            Log.d("===TEMP", "addCoinsSentEventListener " +  tx.getHashAsString());
         });
     }
 }
