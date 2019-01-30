@@ -31,7 +31,7 @@ dependencies {
     annotationProcessor "org.androidannotations:androidannotations:4.2.0"
     implementation 'org.androidannotations:androidannotations-api:4.2.0'
     //BitcoinJ SDK
-    implementation 'org.bitcoinj:bitcoinj-core:0.14.4'
+    implementation 'org.bitcoinj:bitcoinj-core:0.14.7'
     //QR support
     implementation 'com.github.kenglxn.QRGen:android:2.2.0'
     implementation 'com.journeyapps:zxing-android-embedded:3.0.2@aar'

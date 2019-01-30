@@ -25,15 +25,29 @@ Application works with official bitcoin test network (TestNet3) and contains nex
 SDK tutorial https://bitcoinj.github.io/getting-started-java
 
 In `build.gradle`:
+For BitcoinJ library
 ```
     dependencies {
-        compile 'org.bitcoinj:bitcoinj-core:0.14.4'
-        
-        //Logging
-        compile 'org.slf4j:slf4j-api:1.7.12'
-        compile 'org.slf4j:slf4j-simple:1.7.12'
+        compile 'org.bitcoinj:bitcoinj-core:0.14.7'
     }
 ```
+
+For retrolambda
+```
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "gradle.plugin.me.tatarka:gradle-retrolambda:3.7.0"
+  }
+}
+
+apply plugin: "me.tatarka.retrolambda"
+```
+
 Example uses next additinal libraries:
 * <a href="https://github.com/androidannotations/androidannotations">Android Annotations</a>
 * <a href="https://github.com/kenglxn/QRGen">QRGen</a>
