@@ -1,5 +1,7 @@
 package com.androin.bitcoinwallet.main;
 
+import android.app.Activity;
+import android.content.res.AssetManager;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -22,7 +24,10 @@ import org.bitcoinj.utils.Threading;
 import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 
 /**
@@ -47,10 +52,12 @@ public class MainActivityPresenter implements MainActivityContract.MainActivityP
     @Override
     public void subscribe() {
         setBtcSDKThread();
-        parameters = Constants.IS_PRODUCTION ? MainNetParams.get() : TestNet3Params.get();
         BriefLogFormatter.init();
 
-        walletAppKit = new WalletAppKit(parameters, walletDir, Constants.WALLET_NAME) {
+        parameters = Constants.IS_PRODUCTION ? MainNetParams.get() : TestNet3Params.get();
+        String wallet_name = Constants.IS_PRODUCTION ? Constants.WALLET_NAME : Constants.WALLET_NAME_TESTNET;
+
+        walletAppKit = new WalletAppKit(parameters, walletDir, wallet_name) {
             @Override
             protected void onSetupCompleted() {
                 if (wallet().getImportedKeys().size() < 1) wallet().importKey(new ECKey());
@@ -78,7 +85,20 @@ public class MainActivityPresenter implements MainActivityContract.MainActivityP
             }
         });
         walletAppKit.setBlockingStartup(false);
+        walletAppKit.setCheckpoints(getCheckpoints());
         walletAppKit.startAsync();
+    }
+
+    private InputStream getCheckpoints() {
+        AssetManager assManager = ((Activity)view).getApplicationContext().getAssets();
+        InputStream is = null;
+        try {
+            is = assManager.open(Constants.IS_PRODUCTION ? Constants.CHECKPOINTS : Constants.CHECKPOINTS_TESTNET);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return is;
     }
 
     @Override

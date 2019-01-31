@@ -5,8 +5,11 @@ package com.androin.bitcoinwallet;
  */
 
 public class Constants {
-    public static final String WALLET_NAME = "users_wallet";
     public static boolean IS_PRODUCTION = false;
-//    public static final String WALLET_NAME = "main_wallet";
-//    public static boolean IS_PRODUCTION = true;
+
+    public static final String WALLET_NAME = "bitcoin-wallet";
+    public static final String WALLET_NAME_TESTNET = "bitcoin-wallet-testnet";
+
+    public static final String CHECKPOINTS = "checkpoints.txt";
+    public static final String CHECKPOINTS_TESTNET = "checkpoints-testnet.txt";
 }
